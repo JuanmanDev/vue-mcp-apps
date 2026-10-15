@@ -33,7 +33,7 @@ jobs:
         run: npm run build:playground
         env:
           PLAYGROUND_BASE: /${{ github.event.repository.name }}/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: playground/dist
 
