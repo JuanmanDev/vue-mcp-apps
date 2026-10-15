@@ -1,0 +1,56 @@
+{
+  "name": "@vue-mcp-apps/view",
+  "version": "0.1.0",
+  "description": "Run Vue components as MCP App views (inside a host's iframe) or mount them natively in your own Vue app.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "vue-mcp-apps:source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@vue-mcp-apps/core": "0.1.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "vue": "^3.5.34"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuanmanDev/vue-mcp-apps.git",
+    "directory": "packages/view"
+  },
+  "homepage": "https://github.com/JuanmanDev/vue-mcp-apps#readme",
+  "bugs": {
+    "url": "https://github.com/JuanmanDev/vue-mcp-apps/issues"
+  },
+  "author": "Juan Manuel Bécares",
+  "keywords": [
+    "mcp",
+    "mcp-apps",
+    "mcp-ui",
+    "model-context-protocol",
+    "vue",
+    "nuxt-ui"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
