@@ -1,0 +1,12 @@
+{
+  "name": "vue-mcp-apps",
+  "description": "Skill for building and testing MCP Apps (MCP UI) as native Vue / Nuxt UI components with the vue-mcp-apps libraries and its three-layer playground.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Juan Manuel Bécares"
+  },
+  "homepage": "https://juanmandev.github.io/vue-mcp-apps/",
+  "repository": "https://github.com/JuanmanDev/vue-mcp-apps",
+  "license": "MIT",
+  "keywords": ["mcp", "mcp-apps", "mcp-ui", "vue", "nuxt-ui", "skill"]
+}

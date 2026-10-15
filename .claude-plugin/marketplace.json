@@ -1,0 +1,18 @@
+{
+  "name": "vue-mcp-apps",
+  "owner": {
+    "name": "Juan Manuel Bécares"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for vue-mcp-apps: write MCP Apps as Vue components."
+  },
+  "plugins": [
+    {
+      "name": "vue-mcp-apps",
+      "source": "./",
+      "description": "Skill: build, extend and test Vue / Nuxt UI cards as MCP Apps (ui:// templates, AppBridge, sandbox proxy, playground).",
+      "version": "0.1.0",
+      "category": "development"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+# vue-mcp-apps
+
+> Write MCP Apps (the `io.modelcontextprotocol/ui` extension of the Model Context Protocol, spec 2026-01-26) as plain Vue 3 components with Nuxt UI. The same component renders natively in your Vue/Nuxt app (`<McpCard>`) and sandboxed inside any MCP Apps host (Claude, VS Code, Goose, ChatGPT) via `startMcpApp`. A server kit registers `ui://cards/<name>` templates on MCP SDK v1 or v2; a Vite plugin builds all cards into one self-contained `cards.json`. A playground tests cards in three layers (host → sandbox proxy → view, on the official `AppBridge`) and an in-browser AI demo (Chrome built-in AI, WebLLM, OpenAI-compatible, scripted) shows real tool calls producing cards in a chat.
+
+Key rules: a card's buttons can only do what its manifest declares (actions are data); tools only a card may call use `visibility: ['app']`; everything crossing `postMessage` must be plain JSON; templates fetch nothing.
+
+Single-file version of all docs: https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/llms-full.txt
+
+## Start here
+
+- [README](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/README.md): overview, install, quick start, recipes, integration summary, testing, CI/CD
+- [AGENTS.md](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/AGENTS.md): terse guide for coding agents — file map, commands, invariants, recipes, debugging
+- [Glossary](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/GLOSSARY.md): every term and where it lives in code
+
+## Guides
+
+- [Integration guide](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/INTEGRATION.md): cards package, MCP server (SDK v1/v2, stdio, Node http, Express, fetch handlers), Nuxt 4 and Vue apps, your own chat UI, real hosts, CI, migrating a hand-rolled card system
+- [Writing cards](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/WRITING_CARDS.md): rules and step-by-step for card authors
+- [Architecture](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/ARCHITECTURE.md): card contract, result shape, view runtime, native runtime, server kit, bundle format, theming, security model
+- [Playground](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/PLAYGROUND.md): the three layers, controls, inspector, fixtures, hot reload, using it with your cards
+- [AI demo](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/AI_DEMO.md): providers, decision protocol and JSON schema, safety, adding a provider
+- [Testing](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/TESTING.md): unit, protocol conformance vs AppBridge, server kit vs SDK, bundle freshness, Playwright through the iframes, official Inspector
+- [CI/CD](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/CI_CD.md): workflows, GitHub Pages, npm release with provenance
+
+## Reference
+
+- [API reference](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/skills/vue-mcp-apps/references/api.md): every export of @vue-mcp-apps/core, view, server, vite
+- [Protocol reference](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/skills/vue-mcp-apps/references/protocol.md): MCP Apps methods both directions, hostContext fields, CSS variables, sandbox proxy messages
+- [Claude skill](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/skills/vue-mcp-apps/SKILL.md): mental model, recipes, invariants, troubleshooting for Claude Code
+- [FAQ](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/FAQ.md)
+- [Troubleshooting](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/docs/TROUBLESHOOTING.md)
+
+## Code
+
+- [Demo cards manifest](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/examples/demo-cards/src/manifest.ts)
+- [Demo MCP server](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/examples/demo-cards/src/server/createServer.ts)
+- [Approval card (human in the loop)](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/examples/demo-cards/src/cards/ApprovalCard.vue)
+- [Reference host on AppBridge](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/playground/src/lib/sandboxHost.ts)
+- [Sandbox proxy](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/playground/public/sandbox.html)
+
+## Optional
+
+- [Changelog](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/CHANGELOG.md)
+- [Security policy](https://raw.githubusercontent.com/JuanmanDev/vue-mcp-apps/main/SECURITY.md)
+- [MCP Apps specification](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
+- [Live demo](https://juanmandev.github.io/vue-mcp-apps/)
