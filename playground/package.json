@@ -1,0 +1,33 @@
+{
+  "name": "playground",
+  "private": true,
+  "version": "0.1.0",
+  "description": "The three-layer MCP Apps workbench: native Vue card, sandboxed MCP App (host → proxy → view), protocol inspector.",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:cards -w demo-cards && concurrently -k -n cards,web -c magenta,cyan \"npm run watch:cards -w demo-cards\" \"vite\"",
+    "dev:web": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.86",
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@modelcontextprotocol/ext-apps": "^2.0.3",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "@nuxt/ui": "^4.11.3",
+    "@vue-mcp-apps/core": "0.1.0",
+    "@vue-mcp-apps/server": "0.1.0",
+    "@vue-mcp-apps/view": "0.1.0",
+    "demo-cards": "0.1.0",
+    "tailwindcss": "^4.2.1",
+    "vue": "^3.5.34",
+    "vue-router": "^4.6.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@iconify-json/lucide": "^1.2.0",
+    "@iconify-json/simple-icons": "^1.2.100",
+    "@vueuse/core": "^14.4.0"
+  }
+}

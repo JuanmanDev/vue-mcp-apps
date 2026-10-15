@@ -1,0 +1,106 @@
+<!doctype html>
+<!--
+  Layer 2 — the SANDBOX PROXY of an MCP Apps web host.
+
+  The host page (layer 1) frames this file from ANOTHER origin, so the view can
+  never reach the host's cookies, storage or DOM. This page:
+
+    1. tells the host it is ready:      ui/notifications/sandbox-proxy-ready
+    2. receives the view's HTML:         ui/notifications/sandbox-resource-ready
+       { html, sandbox?, csp?, permissions? }
+    3. creates the inner iframe (layer 3, the VIEW) with a CSP built from the
+       resource's `_meta.ui.csp` and the sandbox / `allow` the host chose,
+    4. relays every other message both ways, untouched.
+
+  It never answers or creates a request of its own (spec: "Sandbox proxy").
+  Written without dependencies so it can be copied into any host.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP Apps sandbox proxy</title>
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+  iframe { display: block; width: 100%; border: 0; background: transparent; color-scheme: normal; }
+</style>
+</head>
+<body>
+<script>
+(function () {
+  'use strict'
+  var parentWindow = window.parent
+  var inner = null
+  var pending = []
+
+  function csp(meta) {
+    meta = meta || {}
+    var resources = (meta.resourceDomains || []).join(' ')
+    var connect = (meta.connectDomains || []).join(' ')
+    var frames = (meta.frameDomains || []).join(' ')
+    var bases = (meta.baseUriDomains || []).join(' ')
+    return [
+      "default-src 'none'",
+      "script-src 'self' 'unsafe-inline' " + resources,
+      "style-src 'self' 'unsafe-inline' " + resources,
+      "img-src 'self' data: blob: " + resources,
+      "font-src 'self' data: " + resources,
+      "media-src 'self' data: blob: " + resources,
+      "connect-src 'self' " + connect,
+      'frame-src ' + (frames || "'none'"),
+      "object-src 'none'",
+      'base-uri ' + (bases || "'self'"),
+    ].join('; ')
+  }
+
+  function allowAttribute(permissions) {
+    var map = { camera: 'camera', microphone: 'microphone', geolocation: 'geolocation', clipboardWrite: 'clipboard-write' }
+    return Object.keys(permissions || {}).filter(function (k) { return map[k] }).map(function (k) { return map[k] }).join('; ')
+  }
+
+  function withCsp(html, policy) {
+    var meta = '<meta http-equiv="Content-Security-Policy" content="' + policy.replace(/"/g, '&quot;') + '">'
+    if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function (m) { return m + meta })
+    return meta + html
+  }
+
+  function load(params) {
+    if (inner) inner.remove()
+    inner = document.createElement('iframe')
+    inner.setAttribute('sandbox', typeof params.sandbox === 'string' ? params.sandbox : 'allow-scripts allow-same-origin allow-forms')
+    var allow = allowAttribute(params.permissions)
+    if (allow) inner.setAttribute('allow', allow)
+    inner.setAttribute('title', 'MCP App view')
+    inner.style.height = '100%'
+    inner.srcdoc = withCsp(String(params.html || ''), csp(params.csp))
+    document.body.appendChild(inner)
+    // Messages that raced the iframe creation.
+    var queued = pending; pending = []
+    queued.forEach(function (data) { inner.contentWindow.postMessage(data, '*') })
+  }
+
+  window.addEventListener('message', function (event) {
+    var data = event.data
+    if (event.source === parentWindow) {
+      if (data && typeof data.method === 'string' && data.method.indexOf('ui/notifications/sandbox-') === 0) {
+        if (data.method === 'ui/notifications/sandbox-resource-ready') load(data.params || {})
+        return // sandbox-* messages are for the proxy only
+      }
+      if (inner && inner.contentWindow) inner.contentWindow.postMessage(data, '*')
+      else pending.push(data)
+      return
+    }
+    if (inner && event.source === inner.contentWindow) {
+      parentWindow.postMessage(data, '*')
+    }
+  })
+
+  // Let the outer frame size us: we fill it.
+  document.documentElement.style.height = '100%'
+  document.body.style.height = '100%'
+
+  parentWindow.postMessage({ jsonrpc: '2.0', method: 'ui/notifications/sandbox-proxy-ready', params: {} }, '*')
+})()
+</script>
+</body>
+</html>

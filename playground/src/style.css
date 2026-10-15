@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* The playground and the demo cards (drawn natively in the Native pane). */
+@source "./";
+@source "../../examples/demo-cards/src/cards";
+
+html, body, #app { height: 100%; }
+body { background: var(--ui-bg); }
+
+.json { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }

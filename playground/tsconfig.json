@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "customConditions": ["vue-mcp-apps:source"],
+    "types": ["vite/client", "node"],
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue", "vite.config.ts", "auto-imports.d.ts", "components.d.ts"]
+}
