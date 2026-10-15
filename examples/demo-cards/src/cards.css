@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* Only the cards: the server code and the playground are not part of the bundle. */
+@source "./cards";
+
+/* The iframe sits on the host's surface; the card draws its own. */
+html, body { background: transparent; }
+body { padding: 2px; font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); }
