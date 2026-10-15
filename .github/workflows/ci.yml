@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build packages
+        run: npm run build:packages
+      - name: Build the demo card bundle
+        run: npm run build:cards
+      - name: Bundle is up to date with its sources
+        run: npx vitest run examples/demo-cards/test/bundle.test.ts
+      - name: Unit + protocol tests
+        run: npm test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build the playground
+        run: npm run build:playground
+      - name: llms-full.txt is up to date (AI-friendly docs)
+        run: npm run docs:llms && git diff --exit-code -- llms-full.txt

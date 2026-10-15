@@ -1,0 +1,55 @@
+# Release: push a tag like v0.2.0 (after bumping every packages/*/package.json
+# to the same version). Builds, tests, publishes the four packages to npm with
+# provenance — only when the NPM_TOKEN secret exists — and creates the GitHub
+# release with generated notes.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run typecheck
+
+      - name: Versions match the tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          for p in core view server vite; do
+            V=$(node -p "require('./packages/$p/package.json').version")
+            if [ "$V" != "$TAG" ]; then echo "packages/$p is $V, tag is $TAG"; exit 1; fi
+          done
+
+      - name: Publish to npm (core first — the others depend on it)
+        if: env.HAS_NPM_TOKEN == 'true' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for p in core view server vite; do
+            npm publish -w @vue-mcp-apps/$p --provenance --access public
+          done
+
+      - name: GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --title "$GITHUB_REF_NAME" --verify-tag

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/JuanmanDev/vue-mcp-apps#readme
+    about: README, integration guide, troubleshooting.
+  - name: Live demo
+    url: https://juanmandev.github.io/vue-mcp-apps/
+    about: Try the AI demo and the three-layer workbench.

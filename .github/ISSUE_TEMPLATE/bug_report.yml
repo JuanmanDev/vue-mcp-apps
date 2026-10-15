@@ -1,0 +1,45 @@
+name: Bug report
+description: Something does not work — a card, a package, the playground or the AI demo.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Before filing, check [Troubleshooting](https://github.com/JuanmanDev/vue-mcp-apps/blob/main/docs/TROUBLESHOOTING.md).
+        Security issues: please report privately (see SECURITY.md).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: ["@vue-mcp-apps/core", "@vue-mcp-apps/view", "@vue-mcp-apps/server", "@vue-mcp-apps/vite", "Playground / workbench", "AI demo", "Docs / skill", "CI/CD"]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal manifest / card / server code, or playground steps.
+    validations:
+      required: true
+  - type: textarea
+    id: protocol
+    attributes:
+      label: Protocol log
+      description: Relevant lines from the workbench's Protocol tab (click a row to copy its JSON), or console errors.
+      render: text
+  - type: input
+    id: host
+    attributes:
+      label: Host
+      description: Playground, Claude Desktop, claude.ai, VS Code, MCP Inspector, Goose… with version.
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, browser, Node version, package versions.

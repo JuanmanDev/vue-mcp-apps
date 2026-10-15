@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      mcp:
+        patterns: ['@modelcontextprotocol/*']
+      vue:
+        patterns: ['vue', 'vue-*', '@vue/*', '@vitejs/*', 'vite', 'vitest', 'vue-tsc']
+      ui:
+        patterns: ['@nuxt/ui', 'tailwindcss', '@iconify-json/*', '@vueuse/*']
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
