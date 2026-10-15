@@ -1,0 +1,52 @@
+{
+  "name": "@vue-mcp-apps/vite",
+  "version": "0.1.0",
+  "description": "Vite plugin: build your Vue cards (Nuxt UI, Tailwind, offline icons) into one self-contained MCP Apps bundle.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "vue-mcp-apps:source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "peerDependencies": {
+    "vite": "^6.0.0 || ^7.0.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuanmanDev/vue-mcp-apps.git",
+    "directory": "packages/vite"
+  },
+  "homepage": "https://github.com/JuanmanDev/vue-mcp-apps#readme",
+  "bugs": {
+    "url": "https://github.com/JuanmanDev/vue-mcp-apps/issues"
+  },
+  "author": "Juan Manuel Bécares",
+  "keywords": [
+    "mcp",
+    "mcp-apps",
+    "mcp-ui",
+    "model-context-protocol",
+    "vue",
+    "nuxt-ui"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
