@@ -1,0 +1,51 @@
+{
+  "name": "vue-mcp-apps-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Write MCP Apps (MCP UI) as native Vue components — Nuxt UI included — and test them in a three-layer playground.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/core",
+    "packages/view",
+    "packages/server",
+    "packages/vite",
+    "examples/*",
+    "playground"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build:packages && npm run build:cards && npm run build:playground",
+    "build:packages": "npm run build -w @vue-mcp-apps/core -w @vue-mcp-apps/view -w @vue-mcp-apps/server -w @vue-mcp-apps/vite",
+    "build:cards": "npm run build:cards -w demo-cards",
+    "build:playground": "npm run build -w playground",
+    "dev": "npm run dev -w playground",
+    "server:http": "npm run server:http -w demo-cards",
+    "server:stdio": "npm run server:stdio -w demo-cards",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b packages/core packages/view packages/server packages/vite && vue-tsc -p examples/demo-cards --noEmit && vue-tsc -p playground --noEmit",
+    "skill:install": "node scripts/install-skill.mjs",
+    "docs:llms": "node scripts/build-llms.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.0.0",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "concurrently": "^9.2.1",
+    "jsdom": "^27.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.0",
+    "vue-tsc": "^3.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JuanmanDev/vue-mcp-apps.git"
+  }
+}
