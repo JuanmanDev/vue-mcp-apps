@@ -14,7 +14,7 @@
     "playground"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "scripts": {
     "build": "npm run build:packages && npm run build:cards && npm run build:playground",
@@ -30,7 +30,8 @@
     "skill:install": "node scripts/install-skill.mjs",
     "docs:llms": "node scripts/build-llms.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:packages": "npm run build:packages && node scripts/smoke-packages.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
