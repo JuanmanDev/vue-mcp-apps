@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping. This is a small monorepo with npm workspaces and Node ≥ 20.
+Thanks for helping. This is a small monorepo with npm workspaces. Developing it needs Node ≥ 22.12 (Vite 8, Vitest 5); the published packages run on Node ≥ 20 (checked in CI by `npm run test:packages`).
 
 ```bash
 npm install
