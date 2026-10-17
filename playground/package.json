@@ -28,6 +28,6 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.0",
     "@iconify-json/simple-icons": "^1.2.100",
-    "@vueuse/core": "^14.4.0"
+    "@vueuse/core": "^15.0.0"
   }
 }
