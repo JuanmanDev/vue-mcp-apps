@@ -29,6 +29,10 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run typecheck
+      - name: Packed packages work for a consumer
+        run: node scripts/smoke-packages.mjs
+      - name: End-to-end
+        run: npx playwright install --with-deps chromium && npm run test:e2e
 
       - name: Versions match the tag
         if: startsWith(github.ref, 'refs/tags/v')

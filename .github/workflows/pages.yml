@@ -1,11 +1,17 @@
 # Publishes the playground — with the demo MCP server running in the browser —
 # to GitHub Pages: https://<user>.github.io/<repo>/
+#
+#   pull_request → build only (the Pages build and its actions are tested before merge)
+#   push to main → build, deploy, then run the whole Playwright suite against the
+#                  DEPLOYED site (single origin, opaque sandbox proxy — the real thing)
+#
 # Enable it once in Settings → Pages → Source: GitHub Actions.
 name: Pages
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -14,12 +20,13 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -33,16 +40,56 @@ jobs:
         run: npm run build:playground
         env:
           PLAYGROUND_BASE: /${{ github.event.repository.name }}/
+      - name: The build references its base path
+        run: grep -q "/${{ github.event.repository.name }}/assets/" playground/dist/index.html
       - uses: actions/upload-pages-artifact@v5
         with:
           path: playground/dist
 
   deploy:
     needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # "After" test: the same e2e suite, against what visitors now get.
+  verify-deployed:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Wait for the CDN to serve this build
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS "${{ needs.deploy.outputs.url }}" -o /dev/null && break
+            sleep 5
+          done
+      - name: Playwright against the deployed site
+        run: npm run test:e2e
+        env:
+          E2E_BASE_URL: ${{ needs.deploy.outputs.url }}
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: deployed-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
