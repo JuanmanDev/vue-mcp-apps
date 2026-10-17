@@ -22,7 +22,12 @@
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
-import type { Plugin, PluginOption, UserConfig } from 'vite'
+import { version as viteVersion, type Plugin, type PluginOption, type UserConfig } from 'vite'
+
+const VITE_MAJOR = Number.parseInt(viteVersion, 10)
+
+/** Tailwind CSS v4's own browser baseline — what Nuxt UI needs anyway. */
+export const CSS_BASELINE = ['chrome111', 'edge111', 'firefox128', 'safari16.4']
 
 export interface McpCardBundleOptions {
   /** Where to write the bundle JSON (relative to the Vite root). */
@@ -169,8 +174,12 @@ export function defineCardBundleConfig(options: CardBundleConfigOptions): UserCo
       outDir: 'node_modules/.cache/vue-mcp-apps',
       emptyOutDir: true,
       cssCodeSplit: false,
-      minify: 'esbuild',
-      target: 'es2020',
+      // MCP Apps hosts are evergreen browsers (Claude, ChatGPT, VS Code/Electron,
+      // Goose). Lowering for older ones only bloats a template inlined in every
+      // card: Vite 8's Lightning CSS turned Tailwind's logical properties into
+      // :lang() expansions (+61 kB) under the old es2020 target.
+      target: 'es2022',
+      cssTarget: CSS_BASELINE,
       ...(config.build ?? {}),
       lib: {
         entry,
@@ -180,7 +189,8 @@ export function defineCardBundleConfig(options: CardBundleConfigOptions): UserCo
       },
       rollupOptions: {
         ...(config.build?.rollupOptions ?? {}),
-        output: { inlineDynamicImports: true },
+        // Vite 8 (Rolldown) already builds an IIFE lib as one chunk and warns on this option.
+        ...(VITE_MAJOR < 8 ? { output: { inlineDynamicImports: true } } : {}),
       },
     },
   }

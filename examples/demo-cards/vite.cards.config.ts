@@ -6,7 +6,7 @@ import { defaultClientConditions, defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import ui from '@nuxt/ui/vite'
 import { defineCardBundleConfig } from '@vue-mcp-apps/vite'
-import { cards } from './src/manifest'
+import { cards } from './src/manifest.ts'
 
 export default defineConfig(defineCardBundleConfig({
   entry: 'src/view.ts',
