@@ -22,7 +22,7 @@
     "demo-cards": "0.1.0",
     "tailwindcss": "^4.2.1",
     "vue": "^3.5.34",
-    "vue-router": "^4.6.0",
+    "vue-router": "^5.4.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
