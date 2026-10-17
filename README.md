@@ -8,7 +8,7 @@
 [![E2E](https://github.com/JuanmanDev/vue-mcp-apps/actions/workflows/e2e.yml/badge.svg)](https://github.com/JuanmanDev/vue-mcp-apps/actions/workflows/e2e.yml)
 [![Pages](https://github.com/JuanmanDev/vue-mcp-apps/actions/workflows/pages.yml/badge.svg)](https://juanmandev.github.io/vue-mcp-apps/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white)](package.json)
+[![Node >= 22.12 (dev) · libs >= 20](https://img.shields.io/badge/node-dev%20%E2%89%A522.12%20%C2%B7%20libs%20%E2%89%A520-339933?logo=node.js&logoColor=white)](package.json)
 [![MCP Apps spec 2026-01-26](https://img.shields.io/badge/MCP%20Apps%20spec-2026--01--26-6366f1)](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
 [![Vue 3.5](https://img.shields.io/badge/vue-3.5-42b883?logo=vue.js&logoColor=white)](https://vuejs.org)
 [![Nuxt UI 4](https://img.shields.io/badge/Nuxt%20UI-4-00DC82?logo=nuxt&logoColor=white)](https://ui.nuxt.com)
@@ -495,7 +495,8 @@ Details: [docs/PLAYGROUND.md](docs/PLAYGROUND.md).
 | Protocol conformance | `packages/view/src/bridge.test.ts` | Our view bridge against the **official** `AppBridge`: handshake, input, result, cancel, context, tool calls, links, messages, size, teardown. |
 | Server | `packages/server/src/server.test.ts` | Templates, `_meta`, visibility and results against a real SDK v2 `McpServer` + `Client`. |
 | Bundle freshness | `examples/demo-cards/test/bundle.test.ts` | `cards.json` matches its sources (`sourceHash`) and fetches nothing. |
-| End to end | Playwright in `e2e/` (`npm run test:e2e`) | The three layers in a real browser, card clicks, the scripted AI chat. |
+| End to end | Playwright in `e2e/` (`npm run test:e2e`) | The three layers in a real browser, card clicks, the scripted AI chat. Also run against the live site after every deploy. |
+| Packed packages | `npm run test:packages` (CI on Node 20/22/24) | What `npm i` gives a user: files, exports, Node support. |
 | Official tools | `npx @modelcontextprotocol/inspector --cli <server> --method tools/call --tool-name get_weather --tool-arg city=Madrid --app-info` | `{"hasApp":true,"resourceUri":"ui://cards/weather-card",…}` |
 | Real hosts | ext-apps `basic-host`, Claude, VS Code, Goose, MCPJam | It works where your users are. |
 
@@ -597,7 +598,8 @@ Full table: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 | `npm run server:http` | Demo MCP server on `http://localhost:3001/mcp`. |
 | `npm run server:stdio` | Demo MCP server on stdio. |
 | `npm test` / `npm run test:watch` | Vitest (contract, protocol conformance, server kit, bundle freshness). |
-| `npm run test:e2e` | Playwright end-to-end tests. |
+| `npm run test:e2e` | Playwright end-to-end tests (`E2E_BASE_URL=<url>` runs them against a deployed site). |
+| `npm run test:packages` | Pack the four packages, install them into a blank project, smoke-test them as a user would. |
 | `npm run typecheck` | `tsc -b` for the packages, `vue-tsc` for the example and the playground. |
 | `npm run docs:llms` | Regenerates `llms-full.txt`. |
 | `npm run skill:install` | Copies the Claude skill (`-- --project <dir>` for one project). |
@@ -627,7 +629,7 @@ docs                 ARCHITECTURE · INTEGRATION · WRITING_CARDS · PLAYGROUND 
 
 ## Contributing
 
-Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Run `npm test`, `npm run typecheck` and `npm run test:e2e` before opening a PR; rebuild `cards.json` when a card or `packages/view`/`core` changes. Security issues: [SECURITY.md](SECURITY.md).
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Run `npm test`, `npm run typecheck`, `npm run test:packages` and `npm run test:e2e` before opening a PR; rebuild `cards.json` when a card or `packages/view`/`core` changes. Security issues: [SECURITY.md](SECURITY.md).
 
 ## Credits
 

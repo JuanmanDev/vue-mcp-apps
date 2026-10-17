@@ -28,9 +28,13 @@ test('a tool call renders the same card natively and as a sandboxed MCP App', as
     expect(log).toContain(method)
   }
 
-  // The proxy lives on another origin than the host.
-  const proxySrc = await page.locator('iframe[title="Sandbox proxy"]').getAttribute('src')
-  expect(new URL(proxySrc!).origin).not.toBe(new URL(page.url()).origin)
+  // The proxy is never the host's origin: another origin (localhost ↔ 127.0.0.1),
+  // or — on a single-origin deploy such as GitHub Pages — an opaque one (no allow-same-origin).
+  const proxy = page.locator('iframe[title="Sandbox proxy"]')
+  const proxySrc = await proxy.getAttribute('src')
+  const sandbox = await proxy.getAttribute('sandbox')
+  const crossOrigin = new URL(proxySrc!).origin !== new URL(page.url()).origin
+  expect(crossOrigin || !sandbox!.includes('allow-same-origin')).toBe(true)
 })
 
 test('a card button runs its declared tool through the host policy', async ({ page }) => {

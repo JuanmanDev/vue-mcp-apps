@@ -6,7 +6,8 @@
     "types": ["node", "vite/client"],
     "declaration": false,
     "declarationMap": false,
-    "composite": false
+    "composite": false,
+    "allowImportingTsExtensions": true
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "vite.cards.config.ts", "auto-imports.d.ts", "components.d.ts"]
 }

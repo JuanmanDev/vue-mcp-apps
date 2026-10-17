@@ -4,16 +4,23 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
+    name: check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -32,3 +39,29 @@ jobs:
         run: npm run build:playground
       - name: llms-full.txt is up to date (AI-friendly docs)
         run: npm run docs:llms && git diff --exit-code -- llms-full.txt
+
+  # The PUBLISHED shape: npm pack → install the tarballs into a blank project →
+  # import every entry point and run the server kit against the real MCP SDK.
+  # On every Node the libraries promise (engines >=20); the repo's own tooling needs 22.12+.
+  packages:
+    name: packages (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:packages
+      - name: Switch to Node ${{ matrix.node }} for the consumer project
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Smoke-test the packed packages
+        run: node scripts/smoke-packages.mjs

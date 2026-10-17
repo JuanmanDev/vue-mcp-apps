@@ -14,7 +14,7 @@
     "playground"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "scripts": {
     "build": "npm run build:packages && npm run build:cards && npm run build:playground",
@@ -30,18 +30,19 @@
     "skill:install": "node scripts/install-skill.mjs",
     "docs:llms": "node scripts/build-llms.mjs",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:packages": "npm run build:packages && node scripts/smoke-packages.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.5",
     "@vitejs/plugin-vue": "^6.0.4",
-    "concurrently": "^9.2.1",
-    "jsdom": "^27.0.0",
+    "concurrently": "^10.0.6",
+    "jsdom": "^30.1.2",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vitest": "^4.0.0",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4",
     "vue-tsc": "^3.1.0"
   },
   "repository": {

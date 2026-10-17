@@ -86,7 +86,7 @@ npm i -D @vue-mcp-apps/vite
     "@iconify-json/lucide": "^1.2.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue-mcp-apps/vite": "^0.1.0",
-    "vite": "^7.0.0"
+    "vite": "^8.0.0"
   }
 }
 ```

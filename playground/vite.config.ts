@@ -29,6 +29,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    chunkSizeWarningLimit: 2000,
+    // WebLLM (~6 MB lib + worker) is a lazy chunk, loaded only when someone picks that provider.
+    chunkSizeWarningLimit: 6500,
   },
 })

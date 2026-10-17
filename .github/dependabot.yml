@@ -1,3 +1,6 @@
+# Minor and patch updates arrive grouped (one PR per family); a MAJOR update
+# always gets its own PR, so a breaking release (e.g. Vite 7 → 8) is reviewed on
+# its own and never hides inside a group.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -7,12 +10,21 @@ updates:
     groups:
       mcp:
         patterns: ['@modelcontextprotocol/*']
+        update-types: [minor, patch]
       vue:
         patterns: ['vue', 'vue-*', '@vue/*', '@vitejs/*', 'vite', 'vitest', 'vue-tsc']
+        update-types: [minor, patch]
       ui:
-        patterns: ['@nuxt/ui', 'tailwindcss', '@iconify-json/*', '@vueuse/*']
-    open-pull-requests-limit: 5
+        patterns: ['@nuxt/ui', 'tailwindcss', '@iconify-json/*', '@vueuse/*', '@mlc-ai/*']
+        update-types: [minor, patch]
+      dev-tools:
+        dependency-type: development
+        update-types: [minor, patch]
+    open-pull-requests-limit: 8
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ['*']

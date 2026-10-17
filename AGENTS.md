@@ -37,7 +37,8 @@ npm ci                    # install (workspaces)
 npm run dev               # build+watch cards, playground http://localhost:5173 (NOT 127.0.0.1)
 npm test                  # vitest: contract, bridge vs official AppBridge, server kit vs SDK v2, bundle freshness
 npm run typecheck         # tsc -b packages + vue-tsc example/playground
-npm run test:e2e          # playwright
+npm run test:e2e          # playwright (E2E_BASE_URL=<url> → against deployed site)
+npm run test:packages     # npm pack → blank project → smoke (CI: Node 20/22/24)
 npm run build             # packages → cards.json → playground
 npm run build:cards       # after ANY change to cards, packages/view, packages/core
 npm run server:http       # demo server :3001/mcp (CORS allowlist ALLOWED_ORIGINS)
@@ -47,6 +48,8 @@ npm run docs:llms         # regen llms-full.txt
 
 ## Invariants (do not break)
 
+- Dev Node >=22.12 (Vite 8, Vitest 5). Published libs Node >=20 — keep core/server/view dependency-light, `test:packages` proves it.
+- Card bundle target es2022 + `CSS_BASELINE` (evergreen hosts). Lower target = Lightning CSS bloat.
 - Actions = data. Manifest maps event → action. Tool action runs DECLARED tool, never name from card. No API giving cards arbitrary tool calls.
 - Card-only tools: `visibility: ['app']`. Host refuses model calls to them; refuses card calls to tools without `'app'`.
 - Payload = first emitted arg. tool→plain object, link→http(s) URL, notify/message/context→text.

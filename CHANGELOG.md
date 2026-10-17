@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Tooling: Vite 8 (Rolldown), Vitest 5, vue-router 5, jsdom 30, `@types/node` 26, concurrently 10, `@vueuse/core` 15; GitHub Actions checkout/setup-node/upload-artifact v7, Pages actions v5 (Dependabot #1–#10). Developing the repo now needs **Node ≥ 22.12**; the published packages still support Node ≥ 20.
+- `@vue-mcp-apps/vite`: accepts Vite 8 as a peer; builds cards for `es2022` with Tailwind v4's browser baseline (`CSS_BASELINE`). Under Vite 8 the old `es2020` target made Lightning CSS lower Tailwind's logical properties (+61 kB per template); the CSS is back to ~194 kB. No `inlineDynamicImports` under Vite 8 (Rolldown builds the IIFE as one chunk already). Script is ~+13 kB gzip under Rolldown (Vue hydration helpers are no longer tree-shaken).
+
+### Added
+
+- CI `packages` job: `npm pack` → blank consumer project → smoke test, on Node 20, 22 and 24 (`npm run test:packages`).
+- Pages workflow builds on pull requests; after each deploy, the full Playwright suite runs against the live site (`E2E_BASE_URL`).
+- Release runs the packed-package smoke test and E2E before publishing.
+- Dependabot: majors in their own PRs, minor/patch grouped, all actions in one PR.
+
 ## [0.1.0] — 2026-10-15
 
 First public version, extracted from the card system of Facturador / Hotelier Tools.

@@ -20,7 +20,7 @@ FILE: README.md
 [![E2E](https://github.com/JuanmanDev/vue-mcp-apps/actions/workflows/e2e.yml/badge.svg)](https://github.com/JuanmanDev/vue-mcp-apps/actions/workflows/e2e.yml)
 [![Pages](https://github.com/JuanmanDev/vue-mcp-apps/actions/workflows/pages.yml/badge.svg)](https://juanmandev.github.io/vue-mcp-apps/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white)](package.json)
+[![Node >= 22.12 (dev) · libs >= 20](https://img.shields.io/badge/node-dev%20%E2%89%A522.12%20%C2%B7%20libs%20%E2%89%A520-339933?logo=node.js&logoColor=white)](package.json)
 [![MCP Apps spec 2026-01-26](https://img.shields.io/badge/MCP%20Apps%20spec-2026--01--26-6366f1)](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
 [![Vue 3.5](https://img.shields.io/badge/vue-3.5-42b883?logo=vue.js&logoColor=white)](https://vuejs.org)
 [![Nuxt UI 4](https://img.shields.io/badge/Nuxt%20UI-4-00DC82?logo=nuxt&logoColor=white)](https://ui.nuxt.com)
@@ -507,7 +507,8 @@ Details: [docs/PLAYGROUND.md](docs/PLAYGROUND.md).
 | Protocol conformance | `packages/view/src/bridge.test.ts` | Our view bridge against the **official** `AppBridge`: handshake, input, result, cancel, context, tool calls, links, messages, size, teardown. |
 | Server | `packages/server/src/server.test.ts` | Templates, `_meta`, visibility and results against a real SDK v2 `McpServer` + `Client`. |
 | Bundle freshness | `examples/demo-cards/test/bundle.test.ts` | `cards.json` matches its sources (`sourceHash`) and fetches nothing. |
-| End to end | Playwright in `e2e/` (`npm run test:e2e`) | The three layers in a real browser, card clicks, the scripted AI chat. |
+| End to end | Playwright in `e2e/` (`npm run test:e2e`) | The three layers in a real browser, card clicks, the scripted AI chat. Also run against the live site after every deploy. |
+| Packed packages | `npm run test:packages` (CI on Node 20/22/24) | What `npm i` gives a user: files, exports, Node support. |
 | Official tools | `npx @modelcontextprotocol/inspector --cli <server> --method tools/call --tool-name get_weather --tool-arg city=Madrid --app-info` | `{"hasApp":true,"resourceUri":"ui://cards/weather-card",…}` |
 | Real hosts | ext-apps `basic-host`, Claude, VS Code, Goose, MCPJam | It works where your users are. |
 
@@ -609,7 +610,8 @@ Full table: [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 | `npm run server:http` | Demo MCP server on `http://localhost:3001/mcp`. |
 | `npm run server:stdio` | Demo MCP server on stdio. |
 | `npm test` / `npm run test:watch` | Vitest (contract, protocol conformance, server kit, bundle freshness). |
-| `npm run test:e2e` | Playwright end-to-end tests. |
+| `npm run test:e2e` | Playwright end-to-end tests (`E2E_BASE_URL=<url>` runs them against a deployed site). |
+| `npm run test:packages` | Pack the four packages, install them into a blank project, smoke-test them as a user would. |
 | `npm run typecheck` | `tsc -b` for the packages, `vue-tsc` for the example and the playground. |
 | `npm run docs:llms` | Regenerates `llms-full.txt`. |
 | `npm run skill:install` | Copies the Claude skill (`-- --project <dir>` for one project). |
@@ -639,7 +641,7 @@ docs                 ARCHITECTURE · INTEGRATION · WRITING_CARDS · PLAYGROUND 
 
 ## Contributing
 
-Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Run `npm test`, `npm run typecheck` and `npm run test:e2e` before opening a PR; rebuild `cards.json` when a card or `packages/view`/`core` changes. Security issues: [SECURITY.md](SECURITY.md).
+Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Run `npm test`, `npm run typecheck`, `npm run test:packages` and `npm run test:e2e` before opening a PR; rebuild `cards.json` when a card or `packages/view`/`core` changes. Security issues: [SECURITY.md](SECURITY.md).
 
 ## Credits
 
@@ -693,7 +695,8 @@ npm ci                    # install (workspaces)
 npm run dev               # build+watch cards, playground http://localhost:5173 (NOT 127.0.0.1)
 npm test                  # vitest: contract, bridge vs official AppBridge, server kit vs SDK v2, bundle freshness
 npm run typecheck         # tsc -b packages + vue-tsc example/playground
-npm run test:e2e          # playwright
+npm run test:e2e          # playwright (E2E_BASE_URL=<url> → against deployed site)
+npm run test:packages     # npm pack → blank project → smoke (CI: Node 20/22/24)
 npm run build             # packages → cards.json → playground
 npm run build:cards       # after ANY change to cards, packages/view, packages/core
 npm run server:http       # demo server :3001/mcp (CORS allowlist ALLOWED_ORIGINS)
@@ -703,6 +706,8 @@ npm run docs:llms         # regen llms-full.txt
 
 ## Invariants (do not break)
 
+- Dev Node >=22.12 (Vite 8, Vitest 5). Published libs Node >=20 — keep core/server/view dependency-light, `test:packages` proves it.
+- Card bundle target es2022 + `CSS_BASELINE` (evergreen hosts). Lower target = Lightning CSS bloat.
 - Actions = data. Manifest maps event → action. Tool action runs DECLARED tool, never name from card. No API giving cards arbitrary tool calls.
 - Card-only tools: `visibility: ['app']`. Host refuses model calls to them; refuses card calls to tools without `'app'`.
 - Payload = first emitted arg. tool→plain object, link→http(s) URL, notify/message/context→text.
@@ -1073,7 +1078,7 @@ npm i -D @vue-mcp-apps/vite
     "@iconify-json/lucide": "^1.2.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vue-mcp-apps/vite": "^0.1.0",
-    "vite": "^7.0.0"
+    "vite": "^8.0.0"
   }
 }
 ```
@@ -2245,12 +2250,16 @@ All workflows live in `.github/workflows/`. They use Node 22 and `npm ci` (the l
 
 | Workflow | Trigger | Jobs |
 | --- | --- | --- |
-| `ci.yml` | push to `main`, pull requests | install → build packages → build card bundle → bundle freshness → unit/protocol tests → typecheck → build playground |
-| `e2e.yml` | push to `main`, pull requests | install → build → Playwright (Chromium) against the built playground → upload `playwright-report/` on failure |
-| `pages.yml` | push to `main`, manual dispatch | build with `PLAYGROUND_BASE=/<repo>/` → upload `playground/dist` → deploy to GitHub Pages |
-| `release.yml` | tag `v*` | build + test → `npm publish --provenance --access public` for each `packages/*` (only when `NPM_TOKEN` is set) → GitHub release with generated notes |
+| `ci.yml` → `check` | push to `main`, pull requests | install → build packages → build card bundle → bundle freshness → unit/protocol tests → typecheck → build playground → `llms-full.txt` freshness |
+| `ci.yml` → `packages (Node 20/22/24)` | push to `main`, pull requests | `npm pack` the four packages → install the tarballs into a blank project → import every entry point and run the server kit against the real MCP SDK v2 (`scripts/smoke-packages.mjs`) |
+| `e2e.yml` | push to `main`, pull requests | install → build → Playwright (Chromium) against the built playground (cross-origin proxy) → upload `playwright-report/` |
+| `pages.yml` | pull requests | build with `PLAYGROUND_BASE=/<repo>/` + check the base path + upload the artifact — **no deploy** (Pages actions are tested before merge) |
+| `pages.yml` | push to `main`, manual dispatch | build → deploy to GitHub Pages → **`verify-deployed`: the whole Playwright suite against the live URL** (`E2E_BASE_URL`, single origin, opaque proxy) |
+| `release.yml` | tag `v*` | build + unit + typecheck + packed-package smoke + E2E → `npm publish --provenance --access public` for each `packages/*` (only when `NPM_TOKEN` is set) → GitHub release with generated notes |
 | `codeql.yml` | push, pull requests, weekly | CodeQL analysis for JavaScript/TypeScript |
-| `dependabot.yml` | weekly | npm (root workspaces) and GitHub Actions version updates |
+| `dependabot.yml` | weekly (npm), monthly (actions) | minor/patch grouped per family; **every major in its own PR**; all GitHub Actions in one PR |
+
+Node: the repo's tooling (Vite 8, Vitest 5, jsdom 30) needs **Node ≥ 22.12**; the published packages promise **Node ≥ 20**, and the `packages` matrix proves it on 20, 22 and 24.
 
 ## What each check protects
 
@@ -2263,12 +2272,24 @@ All workflows live in `.github/workflows/`. They use Node 22 and `npm ci` (the l
 | `npm run typecheck` | Types break in packages (`tsc -b`), the example or the playground (`vue-tsc`). |
 | Build playground | The demo would not deploy. |
 | E2E | The three layers, card clicks or the scripted AI chat break in a real browser. |
+| Packed packages | A file is missing from `files`, the `exports` map is broken, a dependency only resolves inside the monorepo, or the libraries stop running on a supported Node. |
+| Pages build on PRs | A dependency or action update would break the deploy. |
+| `verify-deployed` | The site visitors get differs from what E2E tested (base path, CDN, single-origin sandbox). |
+
+## Reviewing dependency updates
+
+Before merging a Dependabot PR, besides its green checks:
+
+1. **Majors get their own PR** — read the changelog. Build tools change output, not just APIs: Vite 8 (Rolldown + Lightning CSS) lowered Tailwind's CSS for the old `es2020` target and grew every card template by 61 kB, with all tests green. `@vue-mcp-apps/vite` now builds for `es2022` + `CSS_BASELINE`.
+2. **Check what CI never runs**: `npm run dev` (concurrently), the watch rebuild and the hot reload of the sandboxed view.
+3. **Several npm PRs at once**: merge them on one branch, run `npm install` (an auto-merged `package-lock.json` can be inconsistent even without a conflict), then `npm ci` and the whole suite.
+4. Compare the card bundle size line (`script … kB + css … kB`) with `main`.
 
 ## One-time setup on GitHub
 
 1. **Pages**: *Settings → Pages → Build and deployment → Source: GitHub Actions*. (Or `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`.) The demo is then at `https://<owner>.github.io/<repo>/`.
 2. **npm publishing** (optional): create an npm *automation* token and add it as the repository secret `NPM_TOKEN`. Without it, `release.yml` builds, tests and creates the GitHub release but skips publishing. `--provenance` needs `id-token: write`, which the workflow requests.
-3. **Branch protection** (recommended): require `CI` and `E2E` on `main`.
+3. **Branch protection** (recommended): require `check`, `packages (Node 20)`, `playwright` and the Pages `build` on `main`.
 
 ## Cutting a release
 
@@ -2288,7 +2309,9 @@ npm ci
 npm run build:packages && npm run build:cards
 npm test
 npm run typecheck
+npm run test:packages                                   # packed tarballs in a blank project
 npx playwright install chromium && npm run test:e2e
+E2E_BASE_URL=https://juanmandev.github.io/vue-mcp-apps/ npm run test:e2e   # the suite against the live site
 MSYS_NO_PATHCONV=1 PLAYGROUND_BASE=/vue-mcp-apps/ npm run build:playground   # Git Bash on Windows needs MSYS_NO_PATHCONV
 (cd playground && MSYS_NO_PATHCONV=1 PLAYGROUND_BASE=/vue-mcp-apps/ npx vite preview --host 127.0.0.1 --port 4173)   # open http://localhost:4173/vue-mcp-apps/
 ```
@@ -3083,6 +3106,18 @@ FILE: CHANGELOG.md
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Changed
+
+- Tooling: Vite 8 (Rolldown), Vitest 5, vue-router 5, jsdom 30, `@types/node` 26, concurrently 10, `@vueuse/core` 15; GitHub Actions checkout/setup-node/upload-artifact v7, Pages actions v5 (Dependabot #1–#10). Developing the repo now needs **Node ≥ 22.12**; the published packages still support Node ≥ 20.
+- `@vue-mcp-apps/vite`: accepts Vite 8 as a peer; builds cards for `es2022` with Tailwind v4's browser baseline (`CSS_BASELINE`). Under Vite 8 the old `es2020` target made Lightning CSS lower Tailwind's logical properties (+61 kB per template); the CSS is back to ~194 kB. No `inlineDynamicImports` under Vite 8 (Rolldown builds the IIFE as one chunk already). Script is ~+13 kB gzip under Rolldown (Vue hydration helpers are no longer tree-shaken).
+
+### Added
+
+- CI `packages` job: `npm pack` → blank consumer project → smoke test, on Node 20, 22 and 24 (`npm run test:packages`).
+- Pages workflow builds on pull requests; after each deploy, the full Playwright suite runs against the live site (`E2E_BASE_URL`).
+- Release runs the packed-package smoke test and E2E before publishing.
+- Dependabot: majors in their own PRs, minor/patch grouped, all actions in one PR.
 
 ## [0.1.0] — 2026-10-15
 
