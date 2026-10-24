@@ -26,7 +26,7 @@
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.0",
+    "@iconify-json/lucide": "^1.2.147",
     "@iconify-json/simple-icons": "^1.2.100",
     "@vueuse/core": "^15.0.0"
   }
