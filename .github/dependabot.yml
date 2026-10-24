@@ -4,6 +4,8 @@
 version: 2
 updates:
   - package-ecosystem: npm
+    cooldown:
+      default-days: 2
     directory: /
     schedule:
       interval: weekly
@@ -22,6 +24,8 @@ updates:
         update-types: [minor, patch]
     open-pull-requests-limit: 8
   - package-ecosystem: github-actions
+    cooldown:
+      default-days: 2
     directory: /
     schedule:
       interval: monthly
