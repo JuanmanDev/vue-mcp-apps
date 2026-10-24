@@ -151,7 +151,7 @@ Also in the repo:
 
 ## Install
 
-> The packages are not on npm yet. Until they are, use one of the first three options. The import paths are identical in all cases.
+> The packages are on npm (option D), published from CI with [provenance](https://docs.npmjs.com/generating-provenance-statements). A–C build them from this repository instead. The import paths are identical in all cases.
 
 **A. Inside this monorepo** — fork or clone it and add your cards next to `examples/demo-cards`. Workspaces link everything; `npm run dev` gives you the playground immediately.
 
@@ -174,7 +174,7 @@ npm i ./vendor/vue-mcp-apps-core-0.1.0.tgz ./vendor/vue-mcp-apps-view-0.1.0.tgz 
 npm i -D ./vendor/vue-mcp-apps-vite-0.1.0.tgz
 ```
 
-**D. npm (after the first release)**
+**D. npm**
 
 ```bash
 npm i @vue-mcp-apps/core @vue-mcp-apps/view @vue-mcp-apps/server
@@ -528,11 +528,11 @@ More: [docs/TESTING.md](docs/TESTING.md).
 | [`ci.yml`](.github/workflows/ci.yml) | push to `main`, PRs | `npm ci` → build packages → build cards → bundle freshness → unit/protocol tests → typecheck → build playground. |
 | [`e2e.yml`](.github/workflows/e2e.yml) | push to `main`, PRs | Playwright (Chromium) against the built playground: three layers, card clicks, scripted AI chat. Uploads the report on failure. |
 | [`pages.yml`](.github/workflows/pages.yml) | push to `main`, manual | Builds the playground with `PLAYGROUND_BASE=/<repo>/` and deploys it to GitHub Pages. |
-| [`release.yml`](.github/workflows/release.yml) | tag `v*` | Build + test, then `npm publish --provenance --access public` for `packages/*` when the `NPM_TOKEN` secret exists; creates a GitHub release with generated notes. |
+| [`release.yml`](.github/workflows/release.yml) | tag `v*` | Build + test, then `npm publish --provenance --access public` for `packages/*` through npm trusted publishing (OIDC, no token, environment `npm`); creates a GitHub release with generated notes. |
 | [`codeql.yml`](.github/workflows/codeql.yml) | push, PRs, weekly | CodeQL for JavaScript/TypeScript. |
 | [`dependabot.yml`](.github/dependabot.yml) | weekly | npm and GitHub Actions updates. |
 
-Setup: *Settings → Pages → Source: GitHub Actions*; add `NPM_TOKEN` (an npm automation token) to publish. Details: [docs/CI_CD.md](docs/CI_CD.md).
+Setup: *Settings → Pages → Source: GitHub Actions*; for npm, set up trusted publishing (no token). Details: [docs/CI_CD.md](docs/CI_CD.md).
 
 ## AI-assistant friendly
 
@@ -1034,7 +1034,7 @@ my-cards/
 
 ## 1. Install the packages
 
-Until the packages are on npm, use a local path or tarballs (see the README's [Install](../README.md#install)). After the first release:
+From npm (to work from a local path or tarballs instead, see the README's [Install](../README.md#install)):
 
 ```bash
 npm i @vue-mcp-apps/core @vue-mcp-apps/view @vue-mcp-apps/server
@@ -2255,7 +2255,7 @@ All workflows live in `.github/workflows/`. They use Node 22 and `npm ci` (the l
 | `e2e.yml` | push to `main`, pull requests | install → build → Playwright (Chromium) against the built playground (cross-origin proxy) → upload `playwright-report/` |
 | `pages.yml` | pull requests | build with `PLAYGROUND_BASE=/<repo>/` + check the base path + upload the artifact — **no deploy** (Pages actions are tested before merge) |
 | `pages.yml` | push to `main`, manual dispatch | build → deploy to GitHub Pages → **`verify-deployed`: the whole Playwright suite against the live URL** (`E2E_BASE_URL`, single origin, opaque proxy) |
-| `release.yml` | tag `v*` | build + unit + typecheck + packed-package smoke + E2E → `npm publish --provenance --access public` for each `packages/*` (only when `NPM_TOKEN` is set) → GitHub release with generated notes |
+| `release.yml` | tag `v*` | `verify`: build + unit + typecheck + packed-package smoke + E2E → `publish` (environment `npm`): `npm publish --provenance --access public` for each `packages/*` through **trusted publishing** (OIDC, no token; versions already on npm are skipped) → `github-release`: release with generated notes (skipped if it exists) |
 | `codeql.yml` | push, pull requests, weekly | CodeQL analysis for JavaScript/TypeScript |
 | `dependabot.yml` | weekly (npm), monthly (actions) | minor/patch grouped per family; **every major in its own PR**; all GitHub Actions in one PR |
 
@@ -2288,7 +2288,18 @@ Before merging a Dependabot PR, besides its green checks:
 ## One-time setup on GitHub
 
 1. **Pages**: *Settings → Pages → Build and deployment → Source: GitHub Actions*. (Or `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`.) The demo is then at `https://<owner>.github.io/<repo>/`.
-2. **npm publishing** (optional): create an npm *automation* token and add it as the repository secret `NPM_TOKEN`. Without it, `release.yml` builds, tests and creates the GitHub release but skips publishing. `--provenance` needs `id-token: write`, which the workflow requests.
+2. **npm publishing** uses [trusted publishing](https://docs.npmjs.com/trusted-publishers): no token is stored anywhere. Once per repository:
+   - a GitHub environment `npm` whose deployment rule only allows tags `v*` (*Settings → Environments*), so nothing but a release tag can publish;
+   - on npmjs.com, each package trusts `release.yml` in the environment `npm`. Needs a 2FA login, not a token:
+     ```bash
+     npm login
+     for p in core view server vite; do
+       npm trust github @vue-mcp-apps/$p --file release.yml --repo <owner>/<repo> --env npm --allow-publish -y
+     done
+     ```
+   - then, per package, *Settings → Publishing access → Require two-factor authentication and disallow tokens*.
+
+   Trusted publishing needs npm ≥ 11.5.1 (the `publish` job installs it) and `id-token: write`, which only the `publish` job gets. A package's very first version cannot be published this way (a package must exist before it can trust a workflow): publish it once by hand (`npm publish -w @vue-mcp-apps/<p> --access public`), then set up the trust.
 3. **Branch protection** (recommended): require `check`, `packages (Node 20)`, `playwright` and the Pages `build` on `main`.
 
 ## Cutting a release
@@ -2578,7 +2589,7 @@ An in-browser assistant picks a **model-visible** tool (`modelTools()`: visibili
   // inspector rows: page.locator('ol li')
   ```
 - End to end: `npm run test:e2e` (Playwright, `e2e/`): three layers, card clicks, scripted AI chat. Never use WebLLM/Chrome AI in CI.
-- CI/CD: `ci.yml` (build, freshness, unit, typecheck, playground build), `e2e.yml`, `pages.yml` (GitHub Pages, `PLAYGROUND_BASE=/<repo>/`), `release.yml` (tag `v*` → npm publish with provenance when `NPM_TOKEN` is set), `codeql.yml`, `dependabot.yml`. See `docs/CI_CD.md`.
+- CI/CD: `ci.yml` (build, freshness, unit, typecheck, playground build), `e2e.yml`, `pages.yml` (GitHub Pages, `PLAYGROUND_BASE=/<repo>/`), `release.yml` (tag `v*` → npm publish through trusted publishing, with provenance), `codeql.yml`, `dependabot.yml`. See `docs/CI_CD.md`.
 - Official CLI probe: `npx @modelcontextprotocol/inspector --cli <server cmd> --method tools/call --tool-name get_weather --tool-arg city=Madrid --app-info` → `hasApp: true`.
 - Official inspector (Apps tab): `npx @modelcontextprotocol/inspector npx tsx --conditions=vue-mcp-apps:source examples/demo-cards/src/server/stdio.ts`.
 - Remote: `npm run server:http` → `http://localhost:3001/mcp`. Use it with the playground's *Remote* mode, ext-apps' `basic-host`, or MCPJam.
@@ -3106,6 +3117,10 @@ FILE: CHANGELOG.md
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Changed
+
+- Release: npm publishing uses trusted publishing (OIDC) from the `npm` environment, limited to `v*` tags; no npm token is stored. The workflow is split into `verify`, `publish` (the only job with `id-token: write`) and `github-release`, and re-running it skips versions already on npm and an existing release.
 
 ## [0.1.0] — 2026-10-17
 

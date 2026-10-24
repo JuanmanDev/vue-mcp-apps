@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Release: npm publishing uses trusted publishing (OIDC) from the `npm` environment, limited to `v*` tags; no npm token is stored. The workflow is split into `verify`, `publish` (the only job with `id-token: write`) and `github-release`, and re-running it skips versions already on npm and an existing release.
+
 ## [0.1.0] — 2026-10-17
 
 First public release, extracted from the card system of Facturador / Hotelier Tools. Preview on GitHub since 2026-10-15; this release adds the Dependabot updates, Vite 8 support and the CI hardening below.

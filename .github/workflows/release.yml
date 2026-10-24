@@ -1,7 +1,11 @@
 # Release: push a tag like v0.2.0 (after bumping every packages/*/package.json
-# to the same version). Builds, tests, publishes the four packages to npm with
-# provenance — only when the NPM_TOKEN secret exists — and creates the GitHub
-# release with generated notes.
+# to the same version). Builds and tests, publishes the four packages to npm
+# through trusted publishing (OIDC, no token, provenance attached), then creates
+# the GitHub release with generated notes.
+#
+# Publishing runs in the `npm` environment, which only accepts `v*` tags; each
+# package on npmjs.com trusts exactly this file + that environment. Re-running
+# is safe: versions already on npm and an existing GitHub release are skipped.
 name: Release
 
 on:
@@ -10,21 +14,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 jobs:
-  release:
+  verify:
     runs-on: ubuntu-latest
-    env:
-      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm run build
       - run: npm test
@@ -43,20 +43,52 @@ jobs:
             if [ "$V" != "$TAG" ]; then echo "packages/$p is $V, tag is $TAG"; exit 1; fi
           done
 
+  publish:
+    needs: verify
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # OIDC for npm trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - name: npm >= 11.5.1 (trusted publishing)
+        run: npm install -g npm@^11.5.1
+      - run: npm ci
+      - run: npm run build:packages
+
       - name: Publish to npm (core first — the others depend on it)
-        if: env.HAS_NPM_TOKEN == 'true' && startsWith(github.ref, 'refs/tags/v')
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for p in core view server vite; do
+            V=$(node -p "require('./packages/$p/package.json').version")
+            if npm view "@vue-mcp-apps/$p@$V" version >/dev/null 2>&1; then
+              echo "@vue-mcp-apps/$p@$V is already on npm, skipping"
+              continue
+            fi
             npm publish -w @vue-mcp-apps/$p --provenance --access public
           done
 
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
       - name: GitHub release
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists, leaving it as is"
+            exit 0
+          fi
           # The CHANGELOG section of this version first, then GitHub's list of merged PRs.
           VERSION="${GITHUB_REF_NAME#v}"
           awk -v h="## [$VERSION]" '
@@ -65,7 +97,4 @@ jobs:
             on && /^\[[^]]+\]: / { exit }
             on { print }
           ' CHANGELOG.md > notes.md
-          if [ "$HAS_NPM_TOKEN" != "true" ]; then
-            printf '\n> Not on npm yet: install from this repository (see the README, "Install").\n' >> notes.md
-          fi
           gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --generate-notes --verify-tag

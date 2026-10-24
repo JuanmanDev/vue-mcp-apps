@@ -115,7 +115,7 @@ An in-browser assistant picks a **model-visible** tool (`modelTools()`: visibili
   // inspector rows: page.locator('ol li')
   ```
 - End to end: `npm run test:e2e` (Playwright, `e2e/`): three layers, card clicks, scripted AI chat. Never use WebLLM/Chrome AI in CI.
-- CI/CD: `ci.yml` (build, freshness, unit, typecheck, playground build), `e2e.yml`, `pages.yml` (GitHub Pages, `PLAYGROUND_BASE=/<repo>/`), `release.yml` (tag `v*` → npm publish with provenance when `NPM_TOKEN` is set), `codeql.yml`, `dependabot.yml`. See `docs/CI_CD.md`.
+- CI/CD: `ci.yml` (build, freshness, unit, typecheck, playground build), `e2e.yml`, `pages.yml` (GitHub Pages, `PLAYGROUND_BASE=/<repo>/`), `release.yml` (tag `v*` → npm publish through trusted publishing, with provenance), `codeql.yml`, `dependabot.yml`. See `docs/CI_CD.md`.
 - Official CLI probe: `npx @modelcontextprotocol/inspector --cli <server cmd> --method tools/call --tool-name get_weather --tool-arg city=Madrid --app-info` → `hasApp: true`.
 - Official inspector (Apps tab): `npx @modelcontextprotocol/inspector npx tsx --conditions=vue-mcp-apps:source examples/demo-cards/src/server/stdio.ts`.
 - Remote: `npm run server:http` → `http://localhost:3001/mcp`. Use it with the playground's *Remote* mode, ext-apps' `basic-host`, or MCPJam.
