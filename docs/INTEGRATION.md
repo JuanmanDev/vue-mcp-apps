@@ -42,7 +42,7 @@ my-cards/
 
 ## 1. Install the packages
 
-Until the packages are on npm, use a local path or tarballs (see the README's [Install](../README.md#install)). After the first release:
+From npm (to work from a local path or tarballs instead, see the README's [Install](../README.md#install)):
 
 ```bash
 npm i @vue-mcp-apps/core @vue-mcp-apps/view @vue-mcp-apps/server

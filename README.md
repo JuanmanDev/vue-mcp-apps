@@ -139,7 +139,7 @@ Also in the repo:
 
 ## Install
 
-> The packages are not on npm yet. Until they are, use one of the first three options. The import paths are identical in all cases.
+> The packages are on npm (option D), published from CI with [provenance](https://docs.npmjs.com/generating-provenance-statements). A–C build them from this repository instead. The import paths are identical in all cases.
 
 **A. Inside this monorepo** — fork or clone it and add your cards next to `examples/demo-cards`. Workspaces link everything; `npm run dev` gives you the playground immediately.
 
@@ -162,7 +162,7 @@ npm i ./vendor/vue-mcp-apps-core-0.1.0.tgz ./vendor/vue-mcp-apps-view-0.1.0.tgz 
 npm i -D ./vendor/vue-mcp-apps-vite-0.1.0.tgz
 ```
 
-**D. npm (after the first release)**
+**D. npm**
 
 ```bash
 npm i @vue-mcp-apps/core @vue-mcp-apps/view @vue-mcp-apps/server
@@ -516,11 +516,11 @@ More: [docs/TESTING.md](docs/TESTING.md).
 | [`ci.yml`](.github/workflows/ci.yml) | push to `main`, PRs | `npm ci` → build packages → build cards → bundle freshness → unit/protocol tests → typecheck → build playground. |
 | [`e2e.yml`](.github/workflows/e2e.yml) | push to `main`, PRs | Playwright (Chromium) against the built playground: three layers, card clicks, scripted AI chat. Uploads the report on failure. |
 | [`pages.yml`](.github/workflows/pages.yml) | push to `main`, manual | Builds the playground with `PLAYGROUND_BASE=/<repo>/` and deploys it to GitHub Pages. |
-| [`release.yml`](.github/workflows/release.yml) | tag `v*` | Build + test, then `npm publish --provenance --access public` for `packages/*` when the `NPM_TOKEN` secret exists; creates a GitHub release with generated notes. |
+| [`release.yml`](.github/workflows/release.yml) | tag `v*` | Build + test, then `npm publish --provenance --access public` for `packages/*` through npm trusted publishing (OIDC, no token, environment `npm`); creates a GitHub release with generated notes. |
 | [`codeql.yml`](.github/workflows/codeql.yml) | push, PRs, weekly | CodeQL for JavaScript/TypeScript. |
 | [`dependabot.yml`](.github/dependabot.yml) | weekly | npm and GitHub Actions updates. |
 
-Setup: *Settings → Pages → Source: GitHub Actions*; add `NPM_TOKEN` (an npm automation token) to publish. Details: [docs/CI_CD.md](docs/CI_CD.md).
+Setup: *Settings → Pages → Source: GitHub Actions*; for npm, set up trusted publishing (no token). Details: [docs/CI_CD.md](docs/CI_CD.md).
 
 ## AI-assistant friendly
 

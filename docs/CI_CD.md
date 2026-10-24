@@ -9,7 +9,7 @@ All workflows live in `.github/workflows/`. They use Node 22 and `npm ci` (the l
 | `e2e.yml` | push to `main`, pull requests | install → build → Playwright (Chromium) against the built playground (cross-origin proxy) → upload `playwright-report/` |
 | `pages.yml` | pull requests | build with `PLAYGROUND_BASE=/<repo>/` + check the base path + upload the artifact — **no deploy** (Pages actions are tested before merge) |
 | `pages.yml` | push to `main`, manual dispatch | build → deploy to GitHub Pages → **`verify-deployed`: the whole Playwright suite against the live URL** (`E2E_BASE_URL`, single origin, opaque proxy) |
-| `release.yml` | tag `v*` | build + unit + typecheck + packed-package smoke + E2E → `npm publish --provenance --access public` for each `packages/*` (only when `NPM_TOKEN` is set) → GitHub release with generated notes |
+| `release.yml` | tag `v*` | `verify`: build + unit + typecheck + packed-package smoke + E2E → `publish` (environment `npm`): `npm publish --provenance --access public` for each `packages/*` through **trusted publishing** (OIDC, no token; versions already on npm are skipped) → `github-release`: release with generated notes (skipped if it exists) |
 | `codeql.yml` | push, pull requests, weekly | CodeQL analysis for JavaScript/TypeScript |
 | `dependabot.yml` | weekly (npm), monthly (actions) | minor/patch grouped per family; **every major in its own PR**; all GitHub Actions in one PR |
 
@@ -42,7 +42,18 @@ Before merging a Dependabot PR, besides its green checks:
 ## One-time setup on GitHub
 
 1. **Pages**: *Settings → Pages → Build and deployment → Source: GitHub Actions*. (Or `gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow`.) The demo is then at `https://<owner>.github.io/<repo>/`.
-2. **npm publishing** (optional): create an npm *automation* token and add it as the repository secret `NPM_TOKEN`. Without it, `release.yml` builds, tests and creates the GitHub release but skips publishing. `--provenance` needs `id-token: write`, which the workflow requests.
+2. **npm publishing** uses [trusted publishing](https://docs.npmjs.com/trusted-publishers): no token is stored anywhere. Once per repository:
+   - a GitHub environment `npm` whose deployment rule only allows tags `v*` (*Settings → Environments*), so nothing but a release tag can publish;
+   - on npmjs.com, each package trusts `release.yml` in the environment `npm`. Needs a 2FA login, not a token:
+     ```bash
+     npm login
+     for p in core view server vite; do
+       npm trust github @vue-mcp-apps/$p --file release.yml --repo <owner>/<repo> --env npm --allow-publish -y
+     done
+     ```
+   - then, per package, *Settings → Publishing access → Require two-factor authentication and disallow tokens*.
+
+   Trusted publishing needs npm ≥ 11.5.1 (the `publish` job installs it) and `id-token: write`, which only the `publish` job gets. A package's very first version cannot be published this way (a package must exist before it can trust a workflow): publish it once by hand (`npm publish -w @vue-mcp-apps/<p> --access public`), then set up the trust.
 3. **Branch protection** (recommended): require `check`, `packages (Node 20)`, `playwright` and the Pages `build` on `main`.
 
 ## Cutting a release
